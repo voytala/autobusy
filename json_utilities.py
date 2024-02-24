@@ -10,20 +10,22 @@ URL_LINIE_ROZKLAD = "https://api.um.warszawa.pl/api/action/dbtimetable_get?id=e9
 URL_AUTOBUSY = "https://api.um.warszawa.pl/api/action/busestrams_get?resource_id=f2e5503e927d-4ad3-9500-4ab9e55deb59&type=1"
 URL_SCHEDULES = "https://api.um.warszawa.pl/api/action/public_transport_routes/"
 
+
 def get_json(url):
     try:
         response = requests.post(f"{url}&apikey={APIKEY}")
         response.raise_for_status()
         return response.json()
     except requests.exceptions.HTTPError as errh:
-        print ("Http Error:", errh)
+        print("Http Error:", errh)
     except requests.exceptions.ConnectionError as errc:
-        print ("Error Connecting:", errc)
+        print("Error Connecting:", errc)
     except requests.exceptions.Timeout as errt:
-        print ("Timeout Error:", errt)
+        print("Timeout Error:", errt)
     except requests.exceptions.RequestException as err:
         print("Error", err)
         raise SystemExit(err)
+
 
 def save_json(json_response, fname):
     print(f"{fname} ", end="")
