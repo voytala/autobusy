@@ -1,7 +1,5 @@
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
-import geopandas as gpd
 from matplotlib.animation import FuncAnimation
 from matplotlib.widgets import Button, Slider
 from map_config import warsaw_lon_min, warsaw_lon_max, warsaw_lat_min, warsaw_lat_max
@@ -37,6 +35,7 @@ scatter = ax.scatter([], [], s=10, c='red', alpha=0.5)
 # Inicjalizacja tekstu czasu
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, fontsize=12, color='black')
 
+
 # Funkcja aktualizacji animacji
 def update(frame):
     current_time = data.iloc[frame]['TimeA'].strftime("%Y-%m-%d %H:%M:%S")
@@ -44,6 +43,7 @@ def update(frame):
     scatter.set_offsets(subset[['LonA', 'LatA']])
     time_text.set_text(f'Czas: {current_time}')
     return scatter, time_text
+
 
 # Tworzenie animacji
 ani = FuncAnimation(fig, update, frames=len(data), interval=100, blit=True, repeat=False)
@@ -57,12 +57,15 @@ bnext = Button(axnext, 'Next')
 bprev = Button(axprev, 'Previous')
 slider = Slider(axslider, 'Frames', 0, len(data) - 1, valinit=0, valstep=1)
 
+
 # Funkcje obsługi zdarzeń przycisków i suwaka
 def nextframe(event):
     slider.set_val(min(slider.val + 1, len(data) - 1))
 
+
 def prevframe(event):
     slider.set_val(max(slider.val - 1, 0))
+
 
 def updateframe(val):
     frame = int(slider.val)
@@ -72,8 +75,17 @@ def updateframe(val):
     warsaw_boundary.plot(ax=ax, color='none', edgecolor='black')
     subset = data.iloc[:frame+1]
     scatter = ax.scatter(subset['LonA'], subset['LatA'], s=10, c='red', alpha=0.5)
-    time_text = ax.text(0.02, 0.95, f'Czas: {subset.iloc[-1]["TimeA"].strftime("%Y-%m-%d %H:%M:%S")}', transform=ax.transAxes, fontsize=12, color='black')
+    last_time = subset.iloc[-1]["TimeA"].strftime("%Y-%m-%d %H:%M:%S")
+    time_text = ax.text(
+        0.02,
+        0.95,
+        f'Czas: {last_time}',
+        transform=ax.transAxes,
+        fontsize=12,
+        color='black'
+    )
     ax.set_title('Mapa zaznaczająca miejsca z przekroczeniem prędkości')
+
 
 bnext.on_clicked(nextframe)
 bprev.on_clicked(prevframe)
