@@ -3,10 +3,8 @@ import sys
 from matplotlib.animation import FuncAnimation
 from matplotlib.widgets import Slider
 import matplotlib.pyplot as plt
-import geopandas as gpd
 from visualizer import load_data_from_folder
 from csv_data_loader import load_boundary
-import numpy as np
 
 # Sprawdzenie, czy podano nazwę folderu jako argument
 if len(sys.argv) != 2:
@@ -50,40 +48,77 @@ scatter = ax.scatter([], [], s=10, c='blue', alpha=0.5)
 # Inicjalizacja tekstu czasu
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, fontsize=12, color='black')
 
+
 # Funkcja skalująca kolor na podstawie opóźnienia
 def scale_color(delay):
     if delay < 0:
-        return 'blue'  # Małe opóźnienia na niebiesko
+        return 'blue'
     elif delay >= 10:
-        return 'red'   # Opóźnienia co najmniej 10 minut na czerwono
+        return 'red'
     else:
-        # Stopniowe przejście od niebieskiego do czerwonego dla opóźnień pomiędzy 0 a 10 minutami
         return (1 - delay / 10, 0, delay / 10)
+
 
 # Funkcja aktualizacji animacji
 def update(frame):
     current_time = unique_minutes[frame].strftime("%Y-%m-%d %H:%M:%S")
-    subset = data[(data['Czas Analizy'] >= unique_minutes[frame]) & (data['Czas Analizy'] < unique_minutes[frame + 1])]
+    subset = data[
+        (data['Czas Analizy'] >= unique_minutes[frame]) &
+        (data['Czas Analizy'] < unique_minutes[frame + 1])
+    ]
     scatter.set_offsets(subset[['Lon', 'Lat']])
     scatter.set_color([scale_color(delay) for delay in subset['Opóźnienie_min']])
     time_text.set_text(f'Czas: {current_time}')
     return scatter, time_text
 
+
 # Tworzenie animacji
-ani = FuncAnimation(fig, update, frames=len(unique_minutes) - 1, interval=500, blit=True, repeat=False)
+ani = FuncAnimation(
+    fig,
+    update,
+    frames=len(unique_minutes) - 1,
+    interval=500,
+    blit=True,
+    repeat=False
+)
 
 # Dodanie suwaka do przewijania animacji
 axslider = plt.axes([0.1, 0.02, 0.65, 0.03])
-slider = Slider(axslider, 'Frames', 0, len(unique_minutes) - 1, valinit=0, valstep=1)
+slider = Slider(
+    axslider, 
+    'Frames', 
+    0, 
+    len(unique_minutes) - 1, 
+    valinit=0, 
+    valstep=1
+)
+
+
 
 # Funkcja obsługi zmiany wartości suwaka
 def update_frame(val):
     frame = int(slider.val)
     ax.cla()
     warsaw_boundary.plot(ax=ax, color='none', edgecolor='black')
-    subset = data[(data['Czas Analizy'] >= unique_minutes[frame]) & (data['Czas Analizy'] < unique_minutes[frame + 1])]
-    scatter = ax.scatter(subset['Lon'], subset['Lat'], s=10, c=[scale_color(delay) for delay in subset['Opóźnienie_min']], alpha=0.5)
-    time_text = ax.text(0.02, 0.95, f'Czas: {unique_minutes[frame].strftime("%Y-%m-%d %H:%M:%S")}', transform=ax.transAxes, fontsize=12, color='black')
+    subset = data[
+        (data['Czas Analizy'] >= unique_minutes[frame]) &
+        (data['Czas Analizy'] < unique_minutes[frame + 1])
+    ]
+    scatter = ax.scatter(
+        subset['Lon'],
+        subset['Lat'],
+        s=10,
+        c=[scale_color(delay) for delay in subset['Opóźnienie_min']],
+        alpha=0.5
+    )
+    time_text = ax.text(
+        0.02,
+        0.95,
+        f'Czas: {unique_minutes[frame].strftime("%Y-%m-%d %H:%M:%S")}',
+        transform=ax.transAxes,
+        fontsize=12,
+        color='black'
+    )
 
 # Dodanie funkcji obsługi zmiany wartości suwaka
 slider.on_changed(update_frame)
