@@ -1,17 +1,19 @@
 import os
 import time
-from json_utilities import *
+from json_utilities import save_json, get_json, URL_AUTOBUSY
 from datetime import datetime
 
 SLEEP_TIME = 60
 BAD_REQUEST_COOLDOWN = 5
 START_TIME = datetime.now()
 
+
 def create_folder():
     # Utwórz folder na podstawie aktualnego czasu i daty
     folder_name = START_TIME.strftime("lokalizacja_%Y%m%d_%H%M%S")
     os.makedirs(folder_name, exist_ok=True)
     return folder_name
+
 
 def download_data(folder_name):
     for i in range(60):
@@ -28,6 +30,7 @@ def download_data(folder_name):
             time.sleep(BAD_REQUEST_COOLDOWN)
             locations = get_json(URL_AUTOBUSY)
             fsize = save_json(locations, fname)
+
 
 if __name__ == "__main__":
     folder_name = create_folder()
