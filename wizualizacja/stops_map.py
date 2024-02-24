@@ -22,8 +22,15 @@ data_slow_speed = load_data_from_folder(folder_name, "wolne_ruchy.csv", 1)
 data_terminals = pd.read_csv('terminals.csv', delimiter=',')
 
 # Konwersja kolumn z współrzędnymi na typ Point
-data_slow_speed['geometry'] = data_slow_speed.apply(lambda x: Point(x['LonA'], x['LatA']), axis=1)
-data_terminals['geometry'] = data_terminals.apply(lambda x: Point(x['Dlug_geo'], x['Szer_geo']), axis=1)
+data_slow_speed['geometry'] = data_slow_speed.apply(
+    lambda x: Point(x['LonA'], x['LatA']),
+    axis=1
+)
+
+data_terminals['geometry'] = data_terminals.apply(
+    lambda x: Point(x['Dlug_geo'], x['Szer_geo']),
+    axis=1
+)
 
 # Tworzenie ramki danych geopandas
 gdf_slow_speed = gpd.GeoDataFrame(data_slow_speed, geometry='geometry')
