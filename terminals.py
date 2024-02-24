@@ -45,9 +45,10 @@ df_grouped = df.groupby(['Linia', 'Trasa']).agg({'Nr_Przystanku': ['min', 'max']
 df_grouped.columns = ['Linia', 'Trasa', 'Nr_Przystanku_min', 'Nr_Przystanku_max']  # Zmiana nazw kolumn
 df_filtered = pd.merge(df, df_grouped, on=['Linia', 'Trasa'])
 
-# Pozostawiamy tylko wiersze, których nr_przystanku jest równy najmniejszemu lub największemu numerowi przystanku dla danej linii i trasy
-df_filtered = df_filtered[(df_filtered['Nr_Przystanku'] == df_filtered['Nr_Przystanku_min']) | (df_filtered['Nr_Przystanku'] == df_filtered['Nr_Przystanku_max'])]
-
+df_filtered = df_filtered[
+    (df_filtered['Nr_Przystanku'] == df_filtered['Nr_Przystanku_min']) |
+    (df_filtered['Nr_Przystanku'] == df_filtered['Nr_Przystanku_max'])
+]
 
 # Usunięcie kolumny 'Trasa' z ramki danych df_filtered
 df_filtered.drop(columns=['Trasa'], inplace=True)
@@ -63,10 +64,10 @@ for index, row in df_filtered.iterrows():
     # Pobranie numeru zespołu i numeru słupka
     zespol = row['Nr_Zespolu']
     slupek = row['Nr_slupka']
-    
+
     # Pobranie współrzędnych dla danego przystanku
     szer_geo, dlug_geo = get_coords(df_przystanki, zespol, slupek)
-    
+
     # Aktualizacja ramki danych df_filtered z uzyskanymi współrzędnymi
     df_filtered.at[index, 'Szer_geo'] = szer_geo
     df_filtered.at[index, 'Dlug_geo'] = dlug_geo
