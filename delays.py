@@ -15,15 +15,16 @@ if len(sys.argv) != 2:
 # Odczytaj nazwę katalogu z argumentu linii poleceń
 folder_name = sys.argv[1]
 
+
 # Funkcja do przekształcenia daty z nazwy folderu
 def transform_folder_date(folder_name):
     try:
-        date_obj = datetime.strptime(folder_name.split('_')[1], "%Y%m%d")
         time_obj = datetime.strptime(folder_name.split('_')[2], "%H%M%S")
         return time_obj.strftime("%H:%M:%S")
     except Exception as e:
-        print("Nieprawidłowa nazwa folderu. Upewnij się, że nazwa folderu ma format: lokalizacja_YYYYMMDD_HHMMSS")
+        print("Nieprawidłowa nazwa folderu. Oczekiwany format: lokalizacja_YYYYMMDD_HHMMSS")
         raise e
+
 
 BEGIN_DATE_STRING = transform_folder_date(folder_name)
 
@@ -56,7 +57,6 @@ df_rozklady = pd.DataFrame(filtered_data)
 df_rozklady.drop_duplicates(inplace=True)
 df_rozklady.sort_values(by=['Linia', 'Brygada', 'Czas'], inplace=True)
 
-#print(df_rozklady.head(50))
 
 def find_next_stop(df, linia, brygada, czas):
     subset = df[(df['Linia'] == linia) & (df['Brygada'] == brygada) & (df['Czas'] > czas)]
@@ -64,6 +64,7 @@ def find_next_stop(df, linia, brygada, czas):
         return None, None, None
     next_time_row = subset.iloc[0]
     return next_time_row['Czas'], next_time_row['Slupek'], next_time_row['Zespol']
+
 
 with open('przystanki.json', 'r') as f:
     data = json.load(f)
@@ -77,6 +78,7 @@ for result in data['result']:
     rows.append(values_dict)
 
 df_przystanki = pd.DataFrame(rows)
+
 
 def transform_date_format(date_str):
     date_time_obj = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
@@ -97,25 +99,20 @@ for i in range(len(files) - 1):
     print(f"Migawka {i}")
     file_path_1 = os.path.join(folder_name, files[i])
     file_path_2 = os.path.join(folder_name, files[i+1])
-    
+
     df_1 = filter_data(file_path_1)
     df_2 = filter_data(file_path_2)
-    
-    #df_1 = pd.json_normalize(data_1['result'])
-    #df_2 = pd.json_normalize(data_2['result'])
-    
+
     df_1['Time'] = df_1['Time'].apply(transform_date_format)
     df_2['Time'] = df_2['Time'].apply(transform_date_format)
-    
+
     df_filtered_1 = df_1[(df_1['Time'] >= BEGIN_DATE_STRING)]
     df_filtered_2 = df_2[(df_2['Time'] >= BEGIN_DATE_STRING)]
-    
+
     for _, row in df_filtered_2.iterrows():
         linia = row['Lines']
         brygada = row['Brigade']
         czas_str = row['Time']
-        #czas = datetime.strptime(czas_str, '%H:%M:%S')
-        
         # Sprawdź, czy istnieje wiersz dla danego autobusu w poprzedniej migawce
         autobus_i_wiersz = df_1[(df_1['Lines'] == linia) & (df_1['Brigade'] == brygada)]
         if autobus_i_wiersz.empty:
@@ -128,16 +125,16 @@ for i in range(len(files) - 1):
             zespol = opoznienia[(linia, brygada)]['zespol']
         else:
             next_time_str, slupek, zespol = find_next_stop(df_rozklady, linia, brygada, czas_str)
-        
+
         if next_time_str is not None:
             #next_time = datetime.strptime(next_time_str, '%H:%M:%S')
             if zespol in df_przystanki['zespol'].values and slupek in df_przystanki['slupek'].values:
                 # Pobieranie współrzędnych przystanku
                 wspolrzedne_przystanku = get_coords(df_przystanki, zespol, slupek)
-                
+
                 # Pobieranie współrzędnych autobusu z pliku autobusy_i+1.json
                 wspolrzedne_autobusu_2 = (row['Lat'], row['Lon'])
-                
+
                 # Pobieranie współrzędnych autobusu z pliku autobusy_i.json
                 autobus_i_wiersz = df_1[(df_1['Lines'] == linia) & (df_1['Brigade'] == brygada)].iloc[0]
                 wspolrzedne_autobusu_1 = (autobus_i_wiersz['Lat'], autobus_i_wiersz['Lon'])
@@ -148,7 +145,7 @@ for i in range(len(files) - 1):
                 # Obliczanie odległości między przystankiem a autobusami
                 odleglosc_przystanek_autobus_1 = distance(lonA, latA, lonB, latB)
                 odleglosc_przystanek_autobus_2 = distance(lonA, latA, wspolrzedne_autobusu_2[1], wspolrzedne_autobusu_2[0])
-                
+
                 # Sprawdzenie, czy autobus dojechał do przystanku
                 if odleglosc_przystanek_autobus_1 > odleglosc_przystanek_autobus_2 and odleglosc_przystanek_autobus_2 > 50:
                     #print(f"Autobus nie dojechał jeszcze do przystanku.")
@@ -201,23 +198,16 @@ for i in range(len(files) - 1):
                                     'slupek': slupek,
                                     'zespol': zespol
                                 }
-
-                #print(f"Linia: {linia}, Brygada: {brygada}")
-                #print(f"Przystanek: {zespol}, Słupek: {slupek}")
-                #print(f"Przystanek - Współrzędne: {wspolrzedne_przystanku}")
-                #print(f"Autobus (migawka {i}): {wspolrzedne_autobusu_1}")
-                #print(f"Autobus (migawka {i+1}): {wspolrzedne_autobusu_2}")
-                #print()
             else:
                 print(f"Nieprawidłowe wartości zespolu i slupka: {zespol}, {slupek}")
-    
+
     df_1 = df_filtered_2
 
 # Tworzenie ramki danych z wynikami analizy
 df_wyniki_analizy = pd.DataFrame(wyniki_analizy)
 
 # Nazwa folderu, gdzie będą zapisane wyniki
-wyniki_folder  = folder_name + "_results"
+wyniki_folder = folder_name + "_results"
 
 # Tworzenie ścieżki do pliku CSV w folderze foldername
 csv_file_path = os.path.join(wyniki_folder, 'wyniki_analizy.csv')
