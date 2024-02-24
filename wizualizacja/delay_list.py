@@ -1,4 +1,3 @@
-import pandas as pd
 import sys
 from visualizer import load_data_from_folder
 
