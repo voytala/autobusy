@@ -1,14 +1,8 @@
-import time
-from datetime import datetime
-import requests
-import json
-import os
-from json_utilities import APIKEY, get_json, save_json, URL_PRZYSTANKI, URL_PRZYSTANKI_BIEZ, URL_LINIE_ROZKLAD, URL_LINIE_PRZYSTANKU
-
+from json_utilities import get_json, save_json
+from json_utilities import URL_LINIE_ROZKLAD, URL_LINIE_PRZYSTANKU
+from json_utilities import URL_PRZYSTANKI, URL_PRZYSTANKI_BIEZ
 
 SLEEP_TIME = 60
-# EMPTY_RESULT = '{"result": "B\u0142\u0119dna metoda lub parametry wywo\u0142ania}'
-    
 #########################################################################################
 # Przystanki
 
@@ -19,8 +13,6 @@ save_json(przystanki_biez, f"przystanki_biez.json")
 
 #########################################################################################
 # Rokłady linii na przystankach
-#przystanki = json.loads('{"result": [{"values": [{"value": "1001", "key": "zespol"}, {"value": "01", "key": "slupek"}, {"value": "Kijowska", "key": "nazwa_zespolu"}, {"value": "2201", "key": "id_ulicy"}, {"value": "52.248455", "key": "szer_geo"}, {"value": "21.044827", "key": "dlug_geo"}, {"value": "al.Zieleniecka", "key": "kierunek"}, {"value": "2023-10-14 00:00:00.0", "key": "obowiazuje_od"}]}]}')
-
 fout = open(f"przystanki_linie_rozklady.json", 'wt')
 fout.write('{\n')
 fout.write('  "result": [\n')
